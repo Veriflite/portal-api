@@ -1,0 +1,486 @@
+asyncapi: 2.5.0
+id: 'https://github.com/veriflite'
+info:
+    title: Veriflite Data Portal
+    version: '1.0.0'
+    description: |
+        Websocket API for development of third party applications using Veriflite time of flight data.
+servers:
+    device:
+        url: 'ws://{ip}:4951'
+        protocol: ws
+        description: Data Portal running on the Veriflite App
+        variables:
+            ip:
+                description: |
+                    The local network IP of the device running the Veriflite App
+channels:
+    /raw:
+        description: Stream of bluetooth packets as received by the app
+        subscribe:
+            description: |
+                Receive minimally processed data from the veriflite sensors as it arrives at the app.
+            message:
+                $ref: '#/components/messages/packet'
+    /flight:
+        description: Stream of processed jump events for individual trampolines
+        subscribe:
+            description: |
+                Receive processed bounce data from the veriflite sensors as it arrives at the app.
+            message:
+                oneOf:
+                    - $ref: '#/components/messages/bounce'
+                    - $ref: '#/components/messages/idle'
+                    - $ref: '#/components/messages/sensor-reset'
+                    - $ref: '#/components/messages/missing-data'
+    /sensor:
+        description: Request sensor data and receive sensor events
+        publish:
+            description: |
+                Request information about the veriflite sensors known by the app
+            message:
+                oneOf:
+                    - $ref: '#/components/messages/sensor-request'
+                    - $ref: '#/components/messages/sensor-data'
+        subscribe:
+            description: |
+                Receive information about the veriflite sensors known by the
+                app
+            message:
+                oneOf:
+                    - $ref: '#/components/messages/error'
+                    - $ref: '#/components/messages/sensor-list'
+                    - $ref: '#/components/messages/sensor-details'
+                    - $ref: '#/components/messages/battery'
+                    - $ref: '#/components/messages/status-flags'
+                    - $ref: '#/components/messages/display-name'
+components:
+    messages:
+        error:
+            name: error
+            description: |
+                Event exposing errors with the socket connection, requests or responses.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/error'
+        packet:
+            name: packet
+            description: |
+                Minimally processed live data from the veriflite sensors as received by the app.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/packet'
+        bounce:
+            name: bounce
+            description: |
+                Live individual bounce data after processing in the veriflite app. This event may be a new bounce, an update to an already received bounce or indicate an existing bounce has been found invalid and should be discarded.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/bounce'
+        idle:
+            name: idle
+            summary: Event signalling that a veriflite sensor has gone idle.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/idle'
+        sensor-reset:
+            name: sensor-reset
+            description: |
+                Event indicating that at least one of the veriflite sensors connected to the application has disconnected or reset. Expect sequence numbers following this to reset and caches to be discarded (there will be no updates to past jumps on missing data received).
+            payload:
+                $ref: '#/components/schemas/sensor-reset'
+        missing-data:
+            name: missing-data
+            description: |
+                Event indicating that there are packets that were expected from the app that have either not arrived - meaning that jump data is unreliable, or that previously missing packets have arrived.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/missing-data'
+        sensor-request:
+            name: sensor-request
+            title: sensor-list request
+            description: |
+                Request a list of the sensors known to the app. This consists of sensors that are either currently active or have been active since the data portal was started on the app.
+
+                This query will prompt a sensor-list response.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/sensor-request'
+        sensor-data:
+            name: sensor-data
+            description: |
+                Request a summary of what the application knows about a specific sensor
+
+                This query will prompt a sensor-details response.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/sensor-data'
+        sensor-list:
+            name: sensor-list
+            title: sensor-list response
+            description: |
+                A list of the sensors known to the app. This consists of sensors that are either currently active or have been active since the data portal was started on the app.
+
+                This is a response to the sensor-list query.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/sensor-list'
+        sensor-details:
+            name: sensor-details
+            description: |
+                A summary of what the application knows about a specific sensor
+
+                This is a response to the sensor-list query.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/sensor-details'
+        battery:
+            name: battery
+            summary: Battery level updates recieved from the sensors.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/battery'
+        status-flags:
+            name: status-flags
+            description: |
+                Status flags recieved from a sensor providing firmware information.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/status-flags'
+        display-name:
+            name: display-name
+            description: |
+                Event indicating that a sensor has sent the user-friendly display name given to it.
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/display-name'
+    schemas:
+        error:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: error
+                    const: error
+                data:
+                    $ref: '#/components/schemas/errorData'
+        errorData:
+            type: object
+            properties:
+                error:
+                    type: string
+                    description: Type of error
+                message:
+                    description: Short description of the error
+                    type: string
+            examples:
+                - error: InvalidArgument
+                  message: Could not find a sensor with the address "90:FD:9F:AC:9B:7F", request sensor-list for known sensors
+        packet:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: packet
+                    const: packet
+                data:
+                    $ref: '#/components/schemas/packetData'
+        packetData:
+            type: object
+            properties:
+                address:
+                    type: string
+                    description: Address of the sensor sending the packet
+                sequenceNumber:
+                    type: integer
+                    description: Used to determine the order in which the packets were generated by the sensor
+                type:
+                    type: string
+                    description: Sensor event described in this packet
+                    enum:
+                        - IMPACT_SYNC
+                        - IMPACT_TIME
+                        - DEPART_SYNC
+                        - DEPART_TIME
+                        - IDLE_SYNC
+                        - IDLE_TIME
+                        - BATTERY_VOLTAGE
+                data:
+                    description: Sensor packet payload, either a timestamp or battery voltage (in mV)
+                    type: integer
+            examples:
+                - address: 90:FD:9F:AC:9B:7F
+                  sequenceNumber: 11
+                  type: IMPACT_TIME
+                  data: 9072
+        bounce:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: bounce
+                    const: bounce
+                data:
+                    $ref: '#/components/schemas/bounceData'
+        bounceData:
+            type: object
+            properties:
+                address:
+                    type: string
+                    description: Address of the sensor detecting the bounce
+                sequenceNumber:
+                    type: integer
+                    description: Indicates the order of the bounce event relative to other events from the same sensor. This is the Sequence number of the IMPACT packet
+                timeOfFlight:
+                    type: integer
+                    description: Difference in timestamps between an IMPACT and the preceeding DEPART
+                toFDelta:
+                    type: integer
+                    description: Difference in time of flight bwteeen this and the preceeding bounce
+                impactTimestamp:
+                    type: integer
+                    description: IMPACT timestamp received from the sensor
+                isInvalid:
+                    type: boolean
+                    description: Marks this as an invalid bounce - it should be removed from use or ignored. Usually a result of laggy out of order data or false jumps due to reverberation.
+            examples:
+                - address: 90:FD:9F:AC:9B:7F
+                  sequenceNumber: 11
+                  timeOfFlight: 1425
+                  toFDelta: 45
+                  impactTimestamp: 9072
+                  isInvalid: false
+        idle:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: idle
+                    const: idle
+                data:
+                    $ref: '#/components/schemas/idleData'
+        idleData:
+            type: object
+            properties:
+                address:
+                    type: string
+                    description: Address of the sensor sending the idle event
+                sequenceNumber:
+                    type: integer
+                    description: Indicates the order of the idle event relative to other events from the same sensor.
+                idleTimestamp:
+                    type: integer
+                    description: IDLE timestamp received from the sensor
+            examples:
+                - address: 90:FD:9F:AC:9B:7F
+                  sequenceNumber: 12
+                  impactTimestamp: 10352
+        sensor-reset:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: sensor-reset
+                    const: sensor-reset
+                data:
+                    type: object
+                    description: Placeholder for future development
+                    const: null
+        missing-data:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: missing-data
+                    const: missing-data
+                data:
+                    $ref: '#/components/schemas/missingData'
+        missingData:
+            type: object
+            properties:
+                address:
+                    type: string
+                    description: Address of the sensor that the missing packets were detected on
+                missingSequenceNumbes:
+                    type: array
+                    description: List of currently missing sequence numbers. If this is empty it means that all missing packets have been found.
+            examples:
+                - address: 90:FD:9F:AC:9B:7F
+                  missingSequenceNumbes: [8, 10]
+        sensor-request:
+            type: object
+            properties:
+                request:
+                    type: string
+                    description: sensor-list
+                    const: sensor-list
+        sensor-data:
+            type: object
+            properties:
+                request:
+                    type: string
+                    description: sensor-details
+                    const: sensor-details
+                args:
+                    type: string
+                    description: The address of a single known sensor. Use the sensor-list request to get a list of valid options.
+            examples:
+                - request: sensor-data
+                  args: 90:FD:9F:AC:9B:7F
+        sensor-list:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: sensor-list
+                    const: sensor-list
+                data:
+                    $ref: '#/components/schemas/sensorListData'
+        sensorListData:
+            type: object
+            properties:
+                sensors:
+                    type: array
+                    description: List of sensors that have been seen by the app while the data portal has been active.
+            examples:
+                - sensors: [90:FD:9F:AC:9B:7F, CC:CC:CC:9B:D8:FD]
+        sensor-details:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: sensor-details
+                    const: sensor-details
+                data:
+                    $ref: '#/components/schemas/sensorDetailData'
+        sensorDetailData:
+            type: object
+            properties:
+                friendlyName:
+                    type: string
+                    description: User friendly name given to the sensor and displayed throughout Veriflite
+                firmwareVersion:
+                    type: string
+                    description: Firmware version running on the sensor
+                batteryLevel:
+                    type: integer
+                    description: Battery voltage in mV
+                isPaired:
+                    type: boolean
+                    description: Whether the sensor is paired (and clock synced) with another sensor. Useful for synchro calculations.
+                syncID:
+                    type: integer
+                    description: Given to a sensor for synchro pairing. Sensors will attempt to pair with others on the same sync ID
+                bootNumber:
+                    type: integer
+                    description: Number of times the sensor has been booted up in its lifetime.
+                lifetimeJumps:
+                    type: integer
+                    description: Total number of bounce events sent by the sensor in its lifetime
+                lifetimeAge:
+                    type: integer
+                    description: Total time the sensor has been active in its lifetime, measured in seconds
+                uniqueID:
+                    type: integer
+                    description: A uinque ID number for a given sensor
+                advertisingRate:
+                    type: number
+                    description: Rate at which packets from the sensor are recieved by the app - indicates the strength of the signal from the sensor to app.
+                isHighPower:
+                    type: boolean
+                    description: Whether the sensor is in high power mode (sending out packets at a higher rate).
+            examples:
+                - friendlyName: Trampoline 1
+                  firmwareVersion: '1.13.3'
+                  batteryLevel: 1503
+                  isPaired: false
+                  syncID: -1
+                  bootNumber: 173
+                  lifetimeJumps: 4542
+                  lifetimeAge: 188678
+                  uniqueID: 844383776
+                  advertisingRate: 13.0791388
+                  isHighPower: false
+        battery:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: battery
+                    const: battery
+                data:
+                    $ref: '#/components/schemas/batteryData'
+        batteryData:
+            type: object
+            properties:
+                address:
+                    type: string
+                    description: Address of the sensor sending the battery level report
+                batteryLevel:
+                    type: integer
+                    description: Battery voltage in mV
+            examples:
+                - address: 90:FD:9F:AC:9B:7F
+                  batteryLevel: 1503
+        status-flags:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: status-flags
+                    const: status-flags
+                data:
+                    $ref: '#/components/schemas/statusFlagData'
+        statusFlagData:
+            type: object
+            properties:
+                address:
+                    type: string
+                    description: Address of the sensor sending the status report
+                uniqueID:
+                    type: integer
+                    description: A uinque ID number for a given sensor
+                firmwareVersion:
+                    type: string
+                    description: Firmware version running on the sensor
+                isHighPower:
+                    type: boolean
+                    description: Whether the sensor is in high power mode (sending out packets at a higher rate).
+                bootNumber:
+                    type: integer
+                    description: Number of times the sensor has been booted up in its lifetime.
+                lifetimeJumps:
+                    type: integer
+                    description: Total number of bounce events sent by the sensor in its lifetime
+                lifetimeAge:
+                    type: integer
+                    description: Total time the sensor has been active in its lifetime, measured in seconds
+            examples:
+                - address: 90:FD:9F:AC:9B:7F
+                  uniqueID: 844383776
+                  firmwareVersion: 1.13.3
+                  isHighPower: false
+                  bootNumber: 134
+                  lifetimeJumps: 4542
+                  lifetimeAge: 188678
+        display-name:
+            type: object
+            properties:
+                event:
+                    type: string
+                    description: display-name
+                    const: display-name
+                data:
+                    $ref: '#/components/schemas/displayNameData'
+        displayNameData:
+            type: object
+            properties:
+                address:
+                    type: string
+                    description: Address of the sensor reporting its name
+                friendlyName:
+                    type: string
+                    description: User friendly name given to the sensor and displayed throughout Veriflite
+            examples:
+                - address: 90:FD:9F:AC:9B:7F
+                  friendlyName: Trampoline 1
