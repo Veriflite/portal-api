@@ -1,5 +1,4 @@
 #!/usr/bin/env bash 
 
-ag asyncapi/portal-api.yaml @asyncapi/markdown-template --force-write
-mv asyncapi.md README.md
-ag asyncapi/portal-api.yaml @asyncapi/html-template --output docs --force-write
+time ag asyncapi/portal-api.yaml @asyncapi/markdown-template -p outFilename=README.md -p version=`git describe` -p toc=true --force-write
+time ag asyncapi/portal-api.yaml @asyncapi/html-template --output docs -p version=`git describe` -p pdf=true --force-write
