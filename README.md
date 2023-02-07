@@ -1,10 +1,19 @@
-# Veriflite Portal 0.1-4-g40e9283 documentation
+# Veriflite Portal 0.1-6-gb6d1a2f documentation
 
 * Specification ID: `https://github.com/veriflite/portal-api`
 * Email support: [john@veriflite.com](mailto:john@veriflite.com)
 
-The Veriflite Portal enables developers to access Veriflite's Time of Flight data through websockets and create custom applications that interact with the Veriflite bounce data.
-The latest API documentation can be found at 'https://veriflite.github.io/portal-api'.
+The Veriflite Portal allows developers direct access to Veriflite's Time of Flight data, to create custom applications on top of the Veriflite platform.
+
+The Portal uses websockets for communication and has three endpoints available: /raw, /flight, and /sensor. The /raw endpoint publishes unprocessed bounce data, while the /flight endpoint publishes processed data. The /sensor endpoint responds to requests for information about the active sensors.
+
+To get started you can use a tool such as websocat, available at https://github.com/vi/websocat, to connect to the endpoints. For example to observe raw bounce data, start the Veriflite app and go to Labs -> Portal; then on your PC, substituting for the IP address displayed in the Portal, run the following command and you should see a stream of bounce events depending on the activity on your trampoline:
+
+    websocat ws://192.168.1.95:4651/raw
+
+There are also some simple example Python projects available at https://github.com/Veriflite/Portal-Demo that demonstrate how to receive Veriflite data.
+
+Please let us know if you're trying the Portal out, we are keen to hear how you get on!
 
 
 ## Table of Contents
@@ -224,7 +233,7 @@ Accepts **one of** the following messages:
 
 * Content type: [application/json](https://www.iana.org/assignments/media-types/application/json)
 
-Request a list of the sensors known to the app. This consists of sensors that are either currently active or have been active since the portal was started on the app.
+Request a list of the sensors known to the app. This consists of sensors that are either currently active or have been active since the Portal was started on the app.
 
 This query will prompt a sensor-list response.
 
@@ -316,7 +325,7 @@ Event exposing errors with the socket connection, requests or responses.
 
 * Content type: [application/json](https://www.iana.org/assignments/media-types/application/json)
 
-A list of the sensors known to the app. This consists of sensors that are either currently active or have been active since the portal was started on the app.
+A list of the sensors known to the app. This consists of sensors that are either currently active or have been active since the Portal was started on the app.
 
 This is a response to the sensor-list query.
 
@@ -328,7 +337,7 @@ This is a response to the sensor-list query.
 | (root) | object | - | - | - | **additional properties are allowed** |
 | event | string | sensor-list | const (`"sensor-list"`) | - | - |
 | data | object | - | examples (`{"sensors":["90:FD:9F:AC:9B:7F","CC:CC:CC:9B:D8:FD"]}`) | - | **additional properties are allowed** |
-| data.sensors | array<any> | List of sensors that have been seen by the app while the portal has been active. | - | - | - |
+| data.sensors | array<any> | List of sensors that have been seen by the app while the Portal has been active. | - | - | - |
 
 > Examples of payload _(generated)_
 
