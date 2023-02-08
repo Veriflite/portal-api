@@ -18,7 +18,7 @@ info:
 
     contact:
         "name": "John Howe"
-        "email": "john@veriflite.com"
+        "email": "info@veriflite.com"
 servers:
     device:
         url: 'ws://{ip}:4651'
