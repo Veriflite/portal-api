@@ -1,4 +1,4 @@
-# Veriflite Portal 0.1-9-gbf97ead documentation
+# Veriflite Portal 0.1-10-ge7bb3a6 documentation
 
 * Specification ID: `https://veriflite.github.io/portal-api/`
 * Email support: [info@veriflite.com](mailto:info@veriflite.com)
@@ -13,7 +13,7 @@ To get started you can use a tool such as websocat, available at https://github.
 
 There are also some simple example Python projects available at https://github.com/Veriflite/Portal-Demo that demonstrate how to receive Veriflite data.
 
-Please let us know if you're trying the Portal out, we are keen to hear how you get on!
+Please let us know if you're trying this Portal out, we are keen to hear how you get on!
 
 
 ## Table of Contents
