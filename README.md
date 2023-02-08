@@ -1,6 +1,6 @@
-# Veriflite Portal 0.1-8-gb09c1f2 documentation
+# Veriflite Portal 0.1-9-gbf97ead documentation
 
-* Specification ID: `https://github.com/veriflite/portal-api`
+* Specification ID: `https://veriflite.github.io/portal-api/`
 * Email support: [info@veriflite.com](mailto:info@veriflite.com)
 
 The Veriflite Portal allows developers direct access to Veriflite's Time of Flight data, to create custom applications on top of the Veriflite platform.

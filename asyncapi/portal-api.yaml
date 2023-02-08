@@ -1,5 +1,5 @@
 asyncapi: 2.5.0
-id: 'https://github.com/veriflite/portal-api'
+id: 'https://veriflite.github.io/portal-api/'
 info:
     title: Veriflite Portal
     version: '0.1'
