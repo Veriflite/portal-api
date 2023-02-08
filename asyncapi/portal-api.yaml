@@ -21,7 +21,7 @@ info:
         "email": "john@veriflite.com"
 servers:
     device:
-        url: 'ws://{ip}:4951'
+        url: 'ws://{ip}:4651'
         protocol: ws
         description: A websocket connection must be opened to the URI displayed by the Veriflite app.
         variables:

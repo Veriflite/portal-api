@@ -1,4 +1,4 @@
-# Veriflite Portal 0.1-6-gb6d1a2f documentation
+# Veriflite Portal 0.1-7-gf1871fc documentation
 
 * Specification ID: `https://github.com/veriflite/portal-api`
 * Email support: [john@veriflite.com](mailto:john@veriflite.com)
@@ -30,7 +30,7 @@ Please let us know if you're trying the Portal out, we are keen to hear how you 
 
 ### `device` Server
 
-* URL: `ws://{ip}:4951`
+* URL: `ws://{ip}:4651`
 * Protocol: `ws`
 
 A websocket connection must be opened to the URI displayed by the Veriflite app.
